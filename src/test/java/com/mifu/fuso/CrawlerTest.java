@@ -4,13 +4,19 @@ import cn.hutool.http.HttpRequest;
 import cn.hutool.json.JSONArray;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
+import com.mifu.fuso.model.entity.Picture;
 import com.mifu.fuso.model.entity.Post;
 import com.mifu.fuso.service.PostService;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import javax.annotation.Resource;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -63,5 +69,29 @@ public class CrawlerTest {
         // 3.数据入库(使用MP封装好的方法)
         boolean flag = postService.saveBatch(postList);
         Assertions.assertTrue(flag);
+    }
+
+    @Test
+    void testFetchPicture() throws IOException {
+        // 从Bing爬取图片,其实就是做了一个转发
+        int current = 1;
+        String url = "https://cn.bing.com/images/search?q=faker&first=" + current;
+        Document doc = Jsoup.connect(url).get();
+        System.out.println(doc);
+        Elements elements = doc.select(".iuscp.isv");
+        List<Picture> pictures = new ArrayList<>();
+        for (Element element : elements) {
+            // 取图片地址(murl)
+            String m = element.select(".iusc").get(0).attr("m");
+            Map<String, Object> map = JSONUtil.toBean(m, Map.class);
+            String murl = (String) map.get("murl");
+            // 取标题
+            String title = element.select(".inflnk").get(0).attr("aria-label");
+            Picture picture = new Picture();
+            picture.setTitle(title);
+            picture.setUrl(murl);
+            pictures.add(picture);
+        }
+        System.out.println(pictures);
     }
 }
