@@ -10,37 +10,25 @@ import com.mifu.fuso.config.WxOpenConfig;
 import com.mifu.fuso.constant.UserConstant;
 import com.mifu.fuso.exception.BusinessException;
 import com.mifu.fuso.exception.ThrowUtils;
+import com.mifu.fuso.model.dto.user.*;
 import com.mifu.fuso.model.entity.User;
-import com.mifu.fuso.service.UserService;
-import com.mifu.fuso.model.dto.user.UserAddRequest;
-import com.mifu.fuso.model.dto.user.UserLoginRequest;
-import com.mifu.fuso.model.dto.user.UserQueryRequest;
-import com.mifu.fuso.model.dto.user.UserRegisterRequest;
-import com.mifu.fuso.model.dto.user.UserUpdateMyRequest;
-import com.mifu.fuso.model.dto.user.UserUpdateRequest;
 import com.mifu.fuso.model.vo.LoginUserVO;
 import com.mifu.fuso.model.vo.UserVO;
-
-import java.util.List;
-import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import com.mifu.fuso.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import me.chanjar.weixin.common.bean.WxOAuth2UserInfo;
 import me.chanjar.weixin.common.bean.oauth2.WxOAuth2AccessToken;
 import me.chanjar.weixin.mp.api.WxMpService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 /**
  * 用户接口
- *
  * @author <a href="https://github.com/mifuCN">米芾</a>
  * @from <a href="https://201314.tk">我的博客</a>
  */
@@ -59,7 +47,6 @@ public class UserController {
 
     /**
      * 用户注册
-     *
      * @param userRegisterRequest
      * @return
      */
@@ -80,7 +67,6 @@ public class UserController {
 
     /**
      * 用户登录
-     *
      * @param userLoginRequest
      * @param request
      * @return
@@ -104,7 +90,7 @@ public class UserController {
      */
     @GetMapping("/login/wx_open")
     public BaseResponse<LoginUserVO> userLoginByWxOpen(HttpServletRequest request, HttpServletResponse response,
-            @RequestParam("code") String code) {
+                                                       @RequestParam("code") String code) {
         WxOAuth2AccessToken accessToken;
         try {
             WxMpService wxService = wxOpenConfig.getWxMpService();
@@ -124,7 +110,6 @@ public class UserController {
 
     /**
      * 用户注销
-     *
      * @param request
      * @return
      */
@@ -139,7 +124,6 @@ public class UserController {
 
     /**
      * 获取当前登录用户
-     *
      * @param request
      * @return
      */
@@ -155,7 +139,6 @@ public class UserController {
 
     /**
      * 创建用户
-     *
      * @param userAddRequest
      * @param request
      * @return
@@ -175,7 +158,6 @@ public class UserController {
 
     /**
      * 删除用户
-     *
      * @param deleteRequest
      * @param request
      * @return
@@ -192,7 +174,6 @@ public class UserController {
 
     /**
      * 更新用户
-     *
      * @param userUpdateRequest
      * @param request
      * @return
@@ -200,7 +181,7 @@ public class UserController {
     @PostMapping("/update")
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
     public BaseResponse<Boolean> updateUser(@RequestBody UserUpdateRequest userUpdateRequest,
-            HttpServletRequest request) {
+                                            HttpServletRequest request) {
         if (userUpdateRequest == null || userUpdateRequest.getId() == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
@@ -213,7 +194,6 @@ public class UserController {
 
     /**
      * 根据 id 获取用户（仅管理员）
-     *
      * @param id
      * @param request
      * @return
@@ -231,7 +211,6 @@ public class UserController {
 
     /**
      * 根据 id 获取包装类
-     *
      * @param id
      * @param request
      * @return
@@ -245,7 +224,6 @@ public class UserController {
 
     /**
      * 分页获取用户列表（仅管理员）
-     *
      * @param userQueryRequest
      * @param request
      * @return
@@ -253,7 +231,7 @@ public class UserController {
     @PostMapping("/list/page")
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
     public BaseResponse<Page<User>> listUserByPage(@RequestBody UserQueryRequest userQueryRequest,
-            HttpServletRequest request) {
+                                                   HttpServletRequest request) {
         long current = userQueryRequest.getCurrent();
         long size = userQueryRequest.getPageSize();
         Page<User> userPage = userService.page(new Page<>(current, size),
@@ -263,14 +241,13 @@ public class UserController {
 
     /**
      * 分页获取用户封装列表
-     *
      * @param userQueryRequest
      * @param request
      * @return
      */
     @PostMapping("/list/page/vo")
     public BaseResponse<Page<UserVO>> listUserVOByPage(@RequestBody UserQueryRequest userQueryRequest,
-            HttpServletRequest request) {
+                                                       HttpServletRequest request) {
         if (userQueryRequest == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
@@ -278,11 +255,7 @@ public class UserController {
         long size = userQueryRequest.getPageSize();
         // 限制爬虫
         ThrowUtils.throwIf(size > 20, ErrorCode.PARAMS_ERROR);
-        Page<User> userPage = userService.page(new Page<>(current, size),
-                userService.getQueryWrapper(userQueryRequest));
-        Page<UserVO> userVOPage = new Page<>(current, size, userPage.getTotal());
-        List<UserVO> userVO = userService.getUserVO(userPage.getRecords());
-        userVOPage.setRecords(userVO);
+        Page<UserVO> userVOPage = userService.listUserVOByPage(userQueryRequest);
         return ResultUtils.success(userVOPage);
     }
 
@@ -290,14 +263,13 @@ public class UserController {
 
     /**
      * 更新个人信息
-     *
      * @param userUpdateMyRequest
      * @param request
      * @return
      */
     @PostMapping("/update/my")
     public BaseResponse<Boolean> updateMyUser(@RequestBody UserUpdateMyRequest userUpdateMyRequest,
-            HttpServletRequest request) {
+                                              HttpServletRequest request) {
         if (userUpdateMyRequest == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }

@@ -2,6 +2,7 @@ package com.mifu.fuso.controller;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.google.gson.Gson;
+import com.mifu.fuso.annotation.AuthCheck;
 import com.mifu.fuso.common.BaseResponse;
 import com.mifu.fuso.common.DeleteRequest;
 import com.mifu.fuso.common.ErrorCode;
@@ -9,27 +10,22 @@ import com.mifu.fuso.common.ResultUtils;
 import com.mifu.fuso.constant.UserConstant;
 import com.mifu.fuso.exception.BusinessException;
 import com.mifu.fuso.exception.ThrowUtils;
-import com.mifu.fuso.model.entity.Post;
-import com.mifu.fuso.model.entity.User;
-import com.mifu.fuso.service.PostService;
-import com.mifu.fuso.service.UserService;
-import com.mifu.fuso.annotation.AuthCheck;
 import com.mifu.fuso.model.dto.post.PostAddRequest;
 import com.mifu.fuso.model.dto.post.PostEditRequest;
 import com.mifu.fuso.model.dto.post.PostQueryRequest;
 import com.mifu.fuso.model.dto.post.PostUpdateRequest;
+import com.mifu.fuso.model.entity.Post;
+import com.mifu.fuso.model.entity.User;
 import com.mifu.fuso.model.vo.PostVO;
-
-import java.util.List;
-import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
+import com.mifu.fuso.service.PostService;
+import com.mifu.fuso.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import java.util.List;
 
 /**
  * 帖子接口
@@ -166,9 +162,8 @@ public class PostController {
         long size = postQueryRequest.getPageSize();
         // 限制爬虫
         ThrowUtils.throwIf(size > 20, ErrorCode.PARAMS_ERROR);
-        Page<Post> postPage = postService.page(new Page<>(current, size),
-                postService.getQueryWrapper(postQueryRequest));
-        return ResultUtils.success(postService.getPostVOPage(postPage, request));
+        Page<PostVO> postVOPage = postService.listPostVOByPage(postQueryRequest, request);
+        return ResultUtils.success(postVOPage);
     }
 
     /**

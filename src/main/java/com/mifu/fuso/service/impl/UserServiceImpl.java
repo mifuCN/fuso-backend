@@ -1,26 +1,20 @@
 package com.mifu.fuso.service.impl;
 
-import static com.mifu.fuso.constant.UserConstant.USER_LOGIN_STATE;
-
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.mifu.fuso.common.ErrorCode;
+import com.mifu.fuso.constant.CommonConstant;
+import com.mifu.fuso.exception.BusinessException;
 import com.mifu.fuso.mapper.UserMapper;
 import com.mifu.fuso.model.dto.user.UserQueryRequest;
 import com.mifu.fuso.model.entity.User;
 import com.mifu.fuso.model.enums.UserRoleEnum;
-import com.mifu.fuso.utils.SqlUtils;
-import com.mifu.fuso.constant.CommonConstant;
-import com.mifu.fuso.exception.BusinessException;
 import com.mifu.fuso.model.vo.LoginUserVO;
 import com.mifu.fuso.model.vo.UserVO;
 import com.mifu.fuso.service.UserService;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
-import javax.servlet.http.HttpServletRequest;
+import com.mifu.fuso.utils.SqlUtils;
 import lombok.extern.slf4j.Slf4j;
 import me.chanjar.weixin.common.bean.WxOAuth2UserInfo;
 import org.apache.commons.lang3.StringUtils;
@@ -28,9 +22,15 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
 
+import javax.servlet.http.HttpServletRequest;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import static com.mifu.fuso.constant.UserConstant.USER_LOGIN_STATE;
+
 /**
  * 用户服务实现
- *
  * @author <a href="https://github.com/mifuCN">米芾</a>
  * @from <a href="https://201314.tk">我的博客</a>
  */
@@ -144,7 +144,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     /**
      * 获取当前登录用户
-     *
      * @param request
      * @return
      */
@@ -167,7 +166,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     /**
      * 获取当前登录用户（允许未登录）
-     *
      * @param request
      * @return
      */
@@ -186,7 +184,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     /**
      * 是否为管理员
-     *
      * @param request
      * @return
      */
@@ -205,7 +202,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     /**
      * 用户注销
-     *
      * @param request
      */
     @Override
@@ -269,5 +265,17 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         queryWrapper.orderBy(SqlUtils.validSortField(sortField), sortOrder.equals(CommonConstant.SORT_ORDER_ASC),
                 sortField);
         return queryWrapper;
+    }
+
+    @Override
+    public Page<UserVO> listUserVOByPage(UserQueryRequest userQueryRequest) {
+        long current = userQueryRequest.getCurrent();
+        long size = userQueryRequest.getPageSize();
+        Page<User> userPage = this.page(new Page<>(current, size),
+                this.getQueryWrapper(userQueryRequest));
+        Page<UserVO> userVOPage = new Page<>(current, size, userPage.getTotal());
+        List<UserVO> userVO = this.getUserVO(userPage.getRecords());
+        userVOPage.setRecords(userVO);
+        return userVOPage;
     }
 }

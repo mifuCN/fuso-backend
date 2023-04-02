@@ -3,14 +3,14 @@ package com.mifu.fuso.service;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.mifu.fuso.model.entity.Post;
 import com.mifu.fuso.model.dto.post.PostQueryRequest;
+import com.mifu.fuso.model.entity.Post;
 import com.mifu.fuso.model.vo.PostVO;
+
 import javax.servlet.http.HttpServletRequest;
 
 /**
  * 帖子服务
- *
  * @author <a href="https://github.com/mifuCN">米芾</a>
  * @from <a href="https://201314.tk">我的博客</a>
  */
@@ -18,7 +18,6 @@ public interface PostService extends IService<Post> {
 
     /**
      * 校验
-     *
      * @param post
      * @param add
      */
@@ -26,7 +25,6 @@ public interface PostService extends IService<Post> {
 
     /**
      * 获取查询条件
-     *
      * @param postQueryRequest
      * @return
      */
@@ -34,7 +32,6 @@ public interface PostService extends IService<Post> {
 
     /**
      * 从 ES 查询
-     *
      * @param postQueryRequest
      * @return
      */
@@ -42,7 +39,6 @@ public interface PostService extends IService<Post> {
 
     /**
      * 获取帖子封装
-     *
      * @param post
      * @param request
      * @return
@@ -51,10 +47,17 @@ public interface PostService extends IService<Post> {
 
     /**
      * 分页获取帖子封装
-     *
      * @param postPage
      * @param request
      * @return
      */
     Page<PostVO> getPostVOPage(Page<Post> postPage, HttpServletRequest request);
+
+    /**
+     * 分页查询帖子
+     * @param postQueryRequest
+     * @param request
+     * @return
+     */
+    Page<PostVO> listPostVOByPage(PostQueryRequest postQueryRequest, HttpServletRequest request);
 }
